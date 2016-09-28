@@ -10,7 +10,8 @@ Spree::Core::Engine.routes.draw do
         sessions: 'spree/user_sessions',
         registrations: 'spree/user_registrations',
         passwords: 'spree/user_passwords',
-        confirmations: 'spree/user_confirmations'
+        confirmations: 'spree/user_confirmations',
+        invitations: 'spree/user_invitations',
       },
       skip: [:unlocks, :omniauth_callbacks],
       path_names: { sign_out: 'logout' },
