@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # see last line where we create an admin if there is none, asking for email and password
 def prompt_for_admin_password
   if ENV['ADMIN_PASSWORD']
@@ -31,20 +33,20 @@ def create_admin_user
     email = 'admin@example.com'
   else
     puts 'Create the admin user (press enter for defaults).'
-    #name = prompt_for_admin_name unless name
+    # name = prompt_for_admin_name unless name
     email = prompt_for_admin_email
     password = prompt_for_admin_password
   end
   attributes = {
-    :password => password,
-    :password_confirmation => password,
-    :email => email,
-    :login => email
+    password: password,
+    password_confirmation: password,
+    email: email,
+    login: email
   }
 
   load 'spree/user.rb'
 
-  if Spree::User.find_by_email(email)
+  if Spree::User.find_by(email: email)
     puts "\nWARNING: There is already a user with the email: #{email}, so no account changes were made.  If you wish to create an additional admin user, please run rake spree_auth:admin:create again with a different email.\n\n"
   else
     admin = Spree::User.new(attributes)
@@ -55,7 +57,7 @@ def create_admin_user
       admin.generate_spree_api_key!
       puts "Done!"
     else
-      puts "There was some problems with persisting new admin user:"
+      puts "There were some problems with persisting a new admin user:"
       admin.errors.full_messages.each do |error|
         puts error
       end
@@ -66,7 +68,7 @@ end
 if Spree::User.admin.empty?
   create_admin_user
 else
-  puts 'Admin user has already been previously created.'
+  puts 'Admin user has already been created.'
   puts 'Would you like to create a new admin user? (yes/no)'
   if ["yes", "y"].include? STDIN.gets.strip.downcase
     create_admin_user

@@ -1,5 +1,6 @@
-RSpec.feature 'Accounts', type: :feature do
+# frozen_string_literal: true
 
+RSpec.feature 'Accounts', type: :feature do
   context 'editing' do
     scenario 'can edit an admin user' do
       user = create(:admin_user, email: 'admin@person.com', password: 'password', password_confirmation: 'password')
@@ -14,7 +15,7 @@ RSpec.feature 'Accounts', type: :feature do
     end
 
     scenario 'can edit a new user' do
-      Spree::Auth::Config.set(signout_after_password_change: false)
+      stub_spree_preferences(Spree::Auth::Config, signout_after_password_change: false)
       visit spree.signup_path
 
       fill_in 'Email', with: 'email@person.com'
@@ -35,7 +36,7 @@ RSpec.feature 'Accounts', type: :feature do
     end
 
     scenario 'can edit an existing user account' do
-      Spree::Auth::Config.set(signout_after_password_change: false)
+      stub_spree_preferences(Spree::Auth::Config ,signout_after_password_change: false)
       user = create(:user, email: 'email@person.com', password: 'secret', password_confirmation: 'secret')
       visit spree.login_path
 

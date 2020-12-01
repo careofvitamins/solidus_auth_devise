@@ -1,6 +1,8 @@
 Solidus Auth (Devise)
 =====================
 
+[![CircleCI](https://circleci.com/gh/solidusio/solidus_auth_devise.svg?style=svg)](https://circleci.com/gh/solidusio/solidus_auth_devise)
+
 Provides authentication services for Solidus, using the Devise gem.
 
 Installation
@@ -93,3 +95,7 @@ Run the following to automatically build a dummy app if necessary and run the te
 ```shell
 bundle exec rake
 ```
+
+## Releasing a new version
+
+Please refer to the dedicated [page](https://github.com/solidusio/solidus/wiki/How-to-release-extensions) on Solidus wiki.
