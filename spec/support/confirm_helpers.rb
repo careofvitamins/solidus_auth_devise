@@ -1,15 +1,26 @@
-module ConfirmHelpers
-  def set_confirmable_option(value)
-    if value
-      Spree::User.devise_modules.push(:confirmable)
-      Spree::Auth::Config.set(confirmable: true)
+# frozen_string_literal: true
+
+RSpec.configure do |config|
+  config.around do |example|
+    if example.metadata.key?(:confirmable)
+      old_user = Spree::User
+
+      begin
+        example.run
+      ensure
+        Spree.const_set('User', old_user)
+      end
     else
-      Spree::User.devise_modules.delete(:confirmable)
-      Spree::Auth::Config.set(confirmable: false)
+      example.run
     end
   end
-end
 
-RSpec.configure do |c|
-  c.include ConfirmHelpers
+  config.before do |example|
+    if example.metadata.key?(:confirmable)
+      stub_spree_preferences(Spree::Auth::Config, confirmable: example.metadata[:confirmable])
+
+      Spree.send(:remove_const, :User)
+      load File.expand_path('../../../app/models/spree/user.rb', __FILE__)
+    end
+  end
 end

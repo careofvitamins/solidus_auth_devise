@@ -1,5 +1,6 @@
-RSpec.describe Spree::CheckoutController, type: :controller do
+# frozen_string_literal: true
 
+RSpec.describe Spree::CheckoutController, type: :controller do
   let(:order) { create(:order_with_line_items, email: nil, user: nil, guest_token: token) }
   let(:user)  { build(:user, spree_api_key: 'fake') }
   let(:token) { 'some_token' }
@@ -39,11 +40,7 @@ RSpec.describe Spree::CheckoutController, type: :controller do
 
         context 'when guest checkout not allowed' do
           before do
-            Spree::Config.set(allow_guest_checkout: false)
-          end
-
-          after do
-            Spree::Config.set(allow_guest_checkout: true)
+            stub_spree_preferences(allow_guest_checkout: false)
           end
 
           it 'redirects to registration step' do
@@ -56,7 +53,7 @@ RSpec.describe Spree::CheckoutController, type: :controller do
 
     context 'when registration step disabled' do
       before do
-        Spree::Auth::Config.set(registration_step: false)
+        stub_spree_preferences(Spree::Auth::Config, registration_step: false)
       end
 
       context 'when authenticated as registered' do
@@ -80,8 +77,7 @@ RSpec.describe Spree::CheckoutController, type: :controller do
   context '#update' do
     context 'when in the confirm state' do
       before do
-        order.update_column(:email, 'spree@example.com')
-        order.update_column(:state, 'confirm')
+        order.update(email: 'spree@example.com', state: 'confirm')
 
         # So that the order can transition to complete successfully
         allow(order).to receive(:payment_required?) { false }

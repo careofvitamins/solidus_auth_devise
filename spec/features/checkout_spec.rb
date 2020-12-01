@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 RSpec.feature 'Checkout', :js, type: :feature do
   given!(:store) { create(:store) }
   given!(:country) { create(:country, name: 'United States', states_required: true) }
@@ -15,17 +17,17 @@ RSpec.feature 'Checkout', :js, type: :feature do
 
   background do
     @product = create(:product, name: 'RoR Mug')
-    @product.master.stock_items.first.update_column(:count_on_hand, 1)
+    @product.master.stock_items.first.set_count_on_hand(1)
 
     # Bypass gateway error on checkout | ..or stub a gateway
-    Spree::Config[:allow_checkout_on_gateway_error] = true
+    stub_spree_preferences(allow_checkout_on_gateway_error: true)
 
     visit spree.root_path
   end
 
   # Regression test for https://github.com/solidusio/solidus/issues/1588
   scenario 'leaving and returning to address step' do
-    Spree::Auth::Config.set(registration_step: true)
+    stub_spree_preferences(Spree::Auth::Config, registration_step: true)
     click_link 'RoR Mug'
     click_button 'Add To Cart'
     within('h1') { expect(page).to have_text 'Shopping Cart' }
@@ -58,15 +60,9 @@ RSpec.feature 'Checkout', :js, type: :feature do
       expect(page).to have_text(/Billing Address/i)
       expect(page).to have_text(/Shipping Address/i)
 
-      str_addr = 'bill_address'
-      select 'United States', from: "order_#{str_addr}_attributes_country_id"
-      %w(firstname lastname address1 city zipcode phone).each do |field|
-        fill_in "order_#{str_addr}_attributes_#{field}", with: "#{address.send(field)}"
-      end
-      select "#{address.state.name}", from: "order_#{str_addr}_attributes_state_id"
-      check 'order_use_billing'
-
+      fill_addresses_fields_with(address)
       click_button 'Save and Continue'
+
       click_button 'Save and Continue'
       click_button 'Save and Continue'
       click_button 'Place Order'
@@ -90,15 +86,9 @@ RSpec.feature 'Checkout', :js, type: :feature do
 
       click_button 'Checkout'
 
-      str_addr = 'bill_address'
-      select 'United States', from: "order_#{str_addr}_attributes_country_id"
-      %w(firstname lastname address1 city zipcode phone).each do |field|
-        fill_in "order_#{str_addr}_attributes_#{field}", with: "#{address.send(field)}"
-      end
-      select "#{address.state.name}", from: "order_#{str_addr}_attributes_state_id"
-      check 'order_use_billing'
-
+      fill_addresses_fields_with(address)
       click_button 'Save and Continue'
+
       click_button 'Save and Continue'
       click_button 'Save and Continue'
       click_button 'Place Order'
@@ -109,7 +99,7 @@ RSpec.feature 'Checkout', :js, type: :feature do
 
     # Regression test for #890
     scenario 'associate an incomplete guest order with user after successful password reset' do
-      user = create(:user, email: 'email@person.com', password: 'password', password_confirmation: 'password')
+      create(:user, email: 'email@person.com', password: 'password', password_confirmation: 'password')
       click_link 'RoR Mug'
       click_button 'Add To Cart'
 
@@ -132,14 +122,7 @@ RSpec.feature 'Checkout', :js, type: :feature do
       click_link 'Cart'
       click_button 'Checkout'
 
-      str_addr = 'bill_address'
-      select 'United States', from: "order_#{str_addr}_attributes_country_id"
-      %w(firstname lastname address1 city zipcode phone).each do |field|
-        fill_in "order_#{str_addr}_attributes_#{field}", with: "#{address.send(field)}"
-      end
-      select "#{address.state.name}", from: "order_#{str_addr}_attributes_state_id"
-      check 'order_use_billing'
-
+      fill_addresses_fields_with(address)
       click_button 'Save and Continue'
 
       expect(page).not_to have_text 'Email is invalid'
@@ -161,21 +144,15 @@ RSpec.feature 'Checkout', :js, type: :feature do
 
       expect(page).to have_text 'You have signed up successfully.'
 
-      str_addr = 'bill_address'
-      select 'United States', from: "order_#{str_addr}_attributes_country_id"
-      %w(firstname lastname address1 city zipcode phone).each do |field|
-        fill_in "order_#{str_addr}_attributes_#{field}", with: "#{address.send(field)}"
-      end
-      select "#{address.state.name}", from: "order_#{str_addr}_attributes_state_id"
-      check 'order_use_billing'
-
+      fill_addresses_fields_with(address)
       click_button 'Save and Continue'
+
       click_button 'Save and Continue'
       click_button 'Save and Continue'
       click_button 'Place Order'
 
       expect(page).to have_text 'Your order has been processed successfully'
-      expect(Spree::Order.first.user).to eq Spree::User.find_by_email('email@person.com')
+      expect(Spree::Order.first.user).to eq Spree::User.find_by(email: 'email@person.com')
     end
   end
 end

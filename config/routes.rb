@@ -1,9 +1,7 @@
-Spree::Core::Engine.routes.draw do
-  if (
-    SolidusSupport.frontend_available? &&
-    Spree::Auth::Config.draw_frontend_routes
-  )
+# frozen_string_literal: true
 
+Spree::Core::Engine.routes.draw do
+  if SolidusSupport.frontend_available? && Spree::Auth::Config.draw_frontend_routes
     devise_for(:spree_user, {
       class_name: 'Spree::User',
       controllers: {
@@ -39,11 +37,7 @@ Spree::Core::Engine.routes.draw do
     resource :account, controller: 'users'
   end
 
-  if (
-    SolidusSupport.backend_available? &&
-    Spree::Auth::Config.draw_backend_routes
-  )
-
+  if SolidusSupport.backend_available? && Spree::Auth::Config.draw_backend_routes
     namespace :admin do
       devise_for(:spree_user, {
         class_name: 'Spree::User',
@@ -61,7 +55,7 @@ Spree::Core::Engine.routes.draw do
         get '/authorization_failure', to: 'user_sessions#authorization_failure', as: :unauthorized
         get '/login', to: 'user_sessions#new', as: :login
         post '/login', to: 'user_sessions#create', as: :create_new_session
-        get '/logout', to: 'user_sessions#destroy', as: :logout
+        match '/logout', to: 'user_sessions#destroy', as: :logout, via: Devise.sign_out_via
 
         get '/password/recover', to: 'user_passwords#new', as: :recover_password
         post '/password/recover', to: 'user_passwords#create', as: :reset_password
